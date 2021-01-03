@@ -1,0 +1,30 @@
+image_from:
+  registry: r.spiarh.fr
+  name: alpine
+  tag: "3.12"
+
+builder_image_from:
+  registry: docker.io/library
+  name: golang
+  tag: "1.15-alpine"
+
+image:
+  registry: r.spiarh.fr
+  name: nginx
+  # tag: $VERSION
+  tag_from:
+    type: alpine
+    # arch: x86_64
+    # mirror: http://dl-cdn.alpinelinux.org
+    repository: main
+    version_id: "3.12"
+    package: nginx
+
+# type: github
+# owner: gopasspw
+# repository: gopass
+# # version: latest
+# semver: latest
+# semver: latest-stable
+# semver: <=1.8
+  # version constraints ?

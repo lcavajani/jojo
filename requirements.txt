@@ -1,0 +1,4 @@
+dacite
+pyyaml
+jinja2
+requests
