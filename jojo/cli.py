@@ -15,7 +15,6 @@ from action.build_action import BuildAction
 
 
 def parse_args():
-    # Default to info logging
     parser = argparse.ArgumentParser()
 
     # Verify that we are being executed with Python 3+
@@ -25,13 +24,8 @@ def parse_args():
     # Parent parser used by all commands
     parent_parser = argparse.ArgumentParser(
         description='jojo is here to take care of container images!',
+        add_help=False,
     )
-
-    subparsers = parser.add_subparsers(
-        title='commands', description='commands')
-
-    # Parent parser used by all commands
-    parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument(
         '--log-level',
         default=os.environ.get(
@@ -58,23 +52,22 @@ def parse_args():
             config.Defaults.BUILDER.value),
         choices=['buildkit', 'podman'])
 
+    subparsers = parser.add_subparsers(
+        title='commands', description='commands')
+
     # new command
     new_project = subparsers.add_parser(
         'new', help='Create a new image project',
         parents=[parent_parser])
-
     new_project.add_argument(
         '--from-image-builder',
-        # default='registry/name:tag',
         help='Image to use for the builder')
     new_project.add_argument(
         '--from-image',
-        # default='registry/name:tag',
         help='Image to use as the base image')
     new_project.add_argument(
         '--image',
-        # required=True,
-        default='registry/name:tag',
+        default=config.Defaults.IMAGE_DEFAULT.value,
         help='Image to build')
     new_project.add_argument(
         '--version-from',
@@ -88,12 +81,20 @@ def parse_args():
         'listver', help='List the available version of a package',
         parents=[parent_parser])
     list_version.add_argument(
+        '--last-versions',
+        default=config.Defaults.LAST_VERSIONS_LIST.value,
+        help='Max last release versions to query')
+    list_version.add_argument(
         'image', action=ListVersionAction)
 
     # findver command
     find_version = subparsers.add_parser(
         'findver', help='Find the latest version of a package',
         parents=[parent_parser])
+    find_version.add_argument(
+        '--last-versions',
+        default=config.Defaults.LAST_VERSIONS_FIND.value,
+        help='Max last release versions to query')
     find_version.add_argument(
         'image', action=FindVersionAction)
 
@@ -108,13 +109,12 @@ def parse_args():
 
 
 def main():
-    # parse_args()
     try:
-        # parser.parse_args()
         parse_args()
     except subprocess.CalledProcessError as error:
         logging.debug('Stack Trace: %s', error)
-        # parser.error('Unable to execute command: {}'.format(error))
+        logging.error('Unable to execute command: {}'.format(error))
+    # TODO: redo this
     raise SystemExit
 
 

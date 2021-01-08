@@ -50,7 +50,8 @@ class FindVersionAction(action.JojoAction):
                 name=version_from.type.value)(version_from=version_from)
 
             # TODO: add semver
-            version = repository.get_latest()
+            version = repository.get_latest(
+                    last_versions=namespace.last_versions)
 
         if version is not None:
             LOGGER.info('Found version, %s', version)

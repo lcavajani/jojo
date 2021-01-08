@@ -7,11 +7,11 @@ class FindVersion(abc.ABC):
     Base class for package version finding.
     '''
     @abc.abstractmethod
-    def get_all(self) -> 'Versions':
+    def get_all(self, last_versions: int) -> 'Versions':
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_latest(self) -> 'Versions':
+    def get_latest(self, last_versions: int) -> 'Versions':
         raise NotImplementedError()
 
 

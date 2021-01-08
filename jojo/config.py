@@ -18,6 +18,9 @@ class Defaults(enum.Enum):
     BUILDFILE_NAME = '.jojo.yaml'
     DOCKERFILE_NAME = 'Dockerfile'
     DRY_RUN = 'False'
+    IMAGE_DEFAULT = 'registry:443/image:tag'
+    LAST_VERSIONS_LIST = 10
+    LAST_VERSIONS_FIND = 100
     LOG_LEVEL = 'info'
 
 
