@@ -92,16 +92,21 @@ class Alpine(version_finder.FindVersion):
 
         return packages
 
-    def get_all(self) -> version_finder.Versions:
+    def get_all(self, last_versions: int) -> version_finder.Versions:
+        _ = last_versions
         packages = self._parse()
+        stable = []
         if self.version_from.package in packages:
-            return version_finder.Versions(
-                stable=[packages[self.version_from.package]],
-                unstable=None,
-                match=None)
+            # there is only one package per repo
+            stable = [packages[self.version_from.package]]
 
-    def get_latest(self) -> version_finder.Versions:
-        versions = self.get_all()
+        return version_finder.Versions(
+            stable=stable,
+            unstable=None,
+            match=None)
+
+    def get_latest(self, last_versions: int) -> version_finder.Versions:
+        versions = self.get_all(last_versions=last_versions)
         version = versions.stable[0]
         if version:
             return version

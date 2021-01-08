@@ -41,11 +41,11 @@ class Github(version_finder.FindVersion):
         except(ConnectionError, requests.HTTPError, requests.Timeout) as err:
             LOGGER.error('connection failed: %s', err)
 
-    def _get_releases(self) -> typing.Any:
+    def _get_releases(self, last_versions: int) -> typing.Any:
         query = '''
-        query($owner: String!, $repo: String!) {
+        query($owner: String!, $repo: String!, $last: Int!) {
           repository(name: $repo, owner: $owner) {
-            releases(last: 50, orderBy: {field: CREATED_AT, direction: DESC}) {
+            releases(last: $last, orderBy: {field: CREATED_AT, direction: DESC}) {
               nodes {
                 tagName
                 isPrerelease
@@ -58,6 +58,7 @@ class Github(version_finder.FindVersion):
         variables = {
             'owner': self.version_from.owner,
             'repo': self.version_from.repository,
+            'last': last_versions,
         }
 
         results = self._query(query=query, variables=variables)
@@ -70,20 +71,20 @@ class Github(version_finder.FindVersion):
 
         return results
 
-    def get_all(self) -> version_finder.Versions:
-        results = self._get_releases()
+    def get_all(self, last_versions: int) -> version_finder.Versions:
+        results = self._get_releases(last_versions=last_versions)
         if results['data']['repository']:
             releases = results['data']['repository']['releases']['nodes']
             stable = [r['tagName'] for r in releases if not r['isPrerelease']]
             unstable = [r['tagName'] for r in releases if r['isPrerelease']]
 
         return version_finder.Versions(
-                stable=map(util.sanitize_version, stable or []),
-                unstable=map(util.sanitize_version, unstable or []),
+                stable=list(map(util.sanitize_version, stable or [])),
+                unstable=list(map(util.sanitize_version, unstable or [])),
                 match=None)
 
-    def get_latest(self) -> typing.Optional[str]:
-        versions = self.get_all()
+    def get_latest(self, last_versions: int) -> typing.Optional[str]:
+        versions = self.get_all(last_versions=last_versions)
         version = versions.stable[0]
         if version:
             return version
