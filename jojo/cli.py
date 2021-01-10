@@ -101,9 +101,9 @@ def parse_args():
         'listver', help='List the available version of a package',
         parents=[parent_parser])
     list_version.add_argument(
-        '--last-versions',
-        default=config.Defaults.LAST_VERSIONS_LIST.value,
-        help='Max last release versions to query')
+        '--first-versions',
+        default=config.Defaults.FIRST_VERSIONS_LIST.value,
+        help='Release versions to query, from new to old')
     list_version.add_argument(
         'image', action=ListVersionAction)
 
@@ -112,9 +112,9 @@ def parse_args():
         'findver', help='Find the latest version of a package',
         parents=[parent_parser])
     find_version.add_argument(
-        '--last-versions',
-        default=config.Defaults.LAST_VERSIONS_FIND.value,
-        help='Max last release versions to query')
+        '--first-versions',
+        default=config.Defaults.FIRST_VERSIONS_FIND.value,
+        help='Release versions to query, from new to old')
     find_version.add_argument(
         'image', action=FindVersionAction)
 

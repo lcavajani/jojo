@@ -68,7 +68,7 @@ class NewProjectAction(action.JojoAction):
                     tag=image.tag,
                     tag_build=config.TagBuild(
                         version=None,
-                        type=config.SourceType.GITHUB,
+                        type=config.TagType.VERSION,
                         version_from=version_from,
                     ),
                 )

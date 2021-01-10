@@ -41,11 +41,11 @@ class Github(version_finder.FindVersion):
         except(ConnectionError, requests.HTTPError, requests.Timeout) as err:
             LOGGER.error('connection failed: %s', err)
 
-    def _get_releases(self, last_versions: int) -> typing.Any:
+    def _get_releases(self, first_versions: int) -> typing.Any:
         query = '''
-        query($owner: String!, $repo: String!, $last: Int!) {
+        query($owner: String!, $repo: String!, $first: Int!) {
           repository(name: $repo, owner: $owner) {
-            releases(last: $last, orderBy: {field: CREATED_AT, direction: DESC}) {
+            releases(first: $first, orderBy: {field: CREATED_AT, direction: DESC}) {
               nodes {
                 tagName
                 isPrerelease
@@ -58,7 +58,7 @@ class Github(version_finder.FindVersion):
         variables = {
             'owner': self.version_from.owner,
             'repo': self.version_from.repository,
-            'last': last_versions,
+            'first': int(first_versions),
         }
 
         results = self._query(query=query, variables=variables)
@@ -71,8 +71,8 @@ class Github(version_finder.FindVersion):
 
         return results
 
-    def get_all(self, last_versions: int) -> version_finder.Versions:
-        results = self._get_releases(last_versions=last_versions)
+    def get_all(self, first_versions: int) -> version_finder.Versions:
+        results = self._get_releases(first_versions=first_versions)
         if results['data']['repository']:
             releases = results['data']['repository']['releases']['nodes']
             stable = [r['tagName'] for r in releases if not r['isPrerelease']]
@@ -83,8 +83,8 @@ class Github(version_finder.FindVersion):
                 unstable=list(map(util.sanitize_version, unstable or [])),
                 match=None)
 
-    def get_latest(self, last_versions: int) -> typing.Optional[str]:
-        versions = self.get_all(last_versions=last_versions)
+    def get_latest(self, first_versions: int) -> typing.Optional[str]:
+        versions = self.get_all(first_versions=first_versions)
         version = versions.stable[0]
         if version:
             return version

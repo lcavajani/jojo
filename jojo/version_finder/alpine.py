@@ -43,9 +43,8 @@ class Alpine(version_finder.FindVersion):
 
     def _fetch_apkindex(self):
         # TODO add to utils with try/error
-        # response = urllib.request.urlopen(self.apkindex_url)
-        return urllib.request.urlopen(self.apkindex_url)
-        # return response.read()
+        response = urllib.request.urlopen(self.apkindex_url)
+        return response.read()
 
     def _parse_apkindex(self, lines, start):
         end_of_block_found = False
@@ -73,7 +72,7 @@ class Alpine(version_finder.FindVersion):
 
     def _parse(self):
         apkindex = self._fetch_apkindex()
-        fobj = BytesIO(apkindex.read())
+        fobj = BytesIO(apkindex)
         with tarfile.open(fileobj=fobj, mode="r:gz") as tar:
             with tar.extractfile(tar.getmember("APKINDEX")) as handle:
                 lines = handle.readlines()
@@ -88,8 +87,8 @@ class Alpine(version_finder.FindVersion):
 
         return packages
 
-    def get_all(self, last_versions: int) -> version_finder.Versions:
-        _ = last_versions
+    def get_all(self, first_versions: int) -> version_finder.Versions:
+        _ = first_versions
         packages = self._parse()
         stable = []
         if self.version_from.package in packages:
@@ -101,8 +100,8 @@ class Alpine(version_finder.FindVersion):
             unstable=None,
             match=None)
 
-    def get_latest(self, last_versions: int) -> version_finder.Versions:
-        versions = self.get_all(last_versions=last_versions)
+    def get_latest(self, first_versions: int) -> version_finder.Versions:
+        versions = self.get_all(first_versions=first_versions)
         version = versions.stable[0]
         if version:
             return version
