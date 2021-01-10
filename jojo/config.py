@@ -28,6 +28,7 @@ class Defaults(enum.Enum):
     LAST_VERSIONS_LIST = 10
     LAST_VERSIONS_FIND = 100
     LOG_LEVEL = 'info'
+    TAG_LATEST = True
 
 
 class EnvVar(enum.Enum):

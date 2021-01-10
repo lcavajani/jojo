@@ -49,6 +49,31 @@ class Podman(builder.Builder):
             with util.pushd(image_dir):
                 subprocess.check_call(command)
 
+            if namespace.tag_latest:
+                self.tag_latest(image)
+
+    def tag_latest(self, image: str):
+        '''
+        :param image: The image to tag.
+        '''
+        self.tag(image, 'latest')
+
+    def tag(self, image: str, tag: str):
+        '''
+        :param image: The image to tag.
+        :param tag: The tag for the image.
+        '''
+        LOGGER.info('Tagging image')
+
+        command = Command(['podman', 'tag', image])
+        name, _ = image.rsplit(':', 1)
+        new_image = ':'.join([name, tag])
+        command.add_arg(new_image)
+
+        LOGGER.info('Image to tag: %s', image)
+        LOGGER.info('Additional tag: %s', new_image)
+        subprocess.check_call(command)
+
 
 def get_build_args_images(build_config: config.ImageBuildConfig):
     args = []

@@ -123,6 +123,11 @@ def parse_args():
         'build', help='Build a container image',
         parents=[parent_parser])
     build.add_argument(
+        "--tag-latest",
+        default=config.Defaults.TAG_LATEST.value,
+        action="store_true",
+        help='Tag built image as latest')
+    build.add_argument(
         'image', action=BuildAction)
 
     parser.parse_args()
@@ -133,7 +138,7 @@ def main():
         parse_args()
     except subprocess.CalledProcessError as error:
         logging.debug('Stack Trace: %s', error)
-        logging.error('Unable to execute command: {}'.format(error))
+        logging.error('Unable to execute command: %s', error)
     # TODO: redo this
     raise SystemExit
 
