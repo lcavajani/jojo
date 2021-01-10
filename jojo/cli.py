@@ -60,11 +60,31 @@ def parse_args():
         'new', help='Create a new image project',
         parents=[parent_parser])
     new_project.add_argument(
+        '--alpine-package',
+        default=config.Defaults.ALPINE_PACKAGE.value,
+        help='Alpine package to use as version')
+    new_project.add_argument(
+        '--alpine-repo',
+        default=config.Defaults.ALPINE_REPO.value,
+        help='Alpine repository to use for the package')
+    new_project.add_argument(
+        '--alpine-version-id',
+        default=config.Defaults.ALPINE_VERSION_ID.value,
+        help='Alpine version id of the repository')
+    new_project.add_argument(
         '--from-image-builder',
         help='Image to use for the builder')
     new_project.add_argument(
         '--from-image',
         help='Image to use as the base image')
+    new_project.add_argument(
+        '--github-owner',
+        default=config.Defaults.GITHUB_OWNER.value,
+        help='GitHub owner of the repository')
+    new_project.add_argument(
+        '--github-repo',
+        default=config.Defaults.GITHUB_REPO.value,
+        help='GitHub repository to use for the version')
     new_project.add_argument(
         '--image',
         default=config.Defaults.IMAGE_DEFAULT.value,
