@@ -9,6 +9,25 @@ import yaml
 LOGGER = logging.getLogger(__name__)
 
 
+class Command(list):
+    def add_arg(self, name: str):
+        self.extend([name])
+
+    def add_args(self, name: str, value: typing.Any):
+        self.extend([name, value])
+
+    def add_flag(self, name: str, value: bool):
+        if value:
+            self.append(name)
+
+    def add_args_list(self, arg_name: str, list_values: list):
+        for value in list_values:
+            self.extend([arg_name, value])
+
+    def __add__(self, other) -> "Command":
+        return Command(super().__add__(other))
+
+
 def urljoin(*parts: str) -> str:
     if len(parts) == 1:
         return parts[0]

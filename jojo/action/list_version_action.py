@@ -45,7 +45,7 @@ class ListVersionAction(action.JojoAction):
                 name=version_from.type.value)(version_from=version_from)
 
             versions = repository.get_all(
-                    last_versions=namespace.last_versions)
+                    first_versions=namespace.first_versions)
 
             for v in [v for v in (versions.stable or [])]:
                 LOGGER.info(f'stable: {v}')

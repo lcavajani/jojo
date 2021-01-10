@@ -25,8 +25,8 @@ class Defaults(enum.Enum):
     IMAGE_DEFAULT = 'registry:443/image:tag'
     GITHUB_OWNER = 'REPLACE_GITHUB_OWNER'
     GITHUB_REPO = 'REPLACE_GITHUB_REPO'
-    LAST_VERSIONS_LIST = 10
-    LAST_VERSIONS_FIND = 100
+    FIRST_VERSIONS_LIST = 10
+    FIRST_VERSIONS_FIND = 100
     LOG_LEVEL = 'info'
     TAG_LATEST = True
 
@@ -85,9 +85,9 @@ class VersionFromAlpine:
     repository: str
     version_id: str
     arch: typing.Optional[str] = Defaults.ARCH.value
-    type: SourceType = SourceType.ALPINE
     mirror: typing.Optional[str] = None
     semver: typing.Optional[str] = None
+    type: SourceType = SourceType.ALPINE
     version: typing.Optional[str] = None
 
 
