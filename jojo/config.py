@@ -14,11 +14,17 @@ class Defaults(enum.Enum):
     """
     Default configuration options.
     """
+    ARCH = "x86_64"
+    ALPINE_PACKAGE = 'REPLACE_ALPINE_PACKAGE'
+    ALPINE_REPO = 'REPLACE_ALPINE_REPO'
+    ALPINE_VERSION_ID = 'REPLACE_ALPINE_VERSION_ID'
     BUILDER = 'podman'
     BUILDFILE_NAME = '.jojo.yaml'
     DOCKERFILE_NAME = 'Dockerfile'
     DRY_RUN = 'False'
     IMAGE_DEFAULT = 'registry:443/image:tag'
+    GITHUB_OWNER = 'REPLACE_GITHUB_OWNER'
+    GITHUB_REPO = 'REPLACE_GITHUB_REPO'
     LAST_VERSIONS_LIST = 10
     LAST_VERSIONS_FIND = 100
     LOG_LEVEL = 'info'
@@ -74,23 +80,23 @@ class Image:
 
 @dataclasses.dataclass
 class VersionFromAlpine:
-    arch: typing.Optional[str]
-    mirror: typing.Optional[str]
     package: str
     repository: str
-    semver: typing.Optional[str]
-    type: SourceType
-    version: typing.Optional[str]
     version_id: str
+    arch: typing.Optional[str] = Defaults.ARCH.value
+    type: SourceType = SourceType.ALPINE
+    mirror: typing.Optional[str] = None
+    semver: typing.Optional[str] = None
+    version: typing.Optional[str] = None
 
 
 @dataclasses.dataclass
 class VersionFromGithub:
     owner: str
     repository: str
-    semver: typing.Optional[str]
-    type: SourceType
-    version: typing.Optional[str]
+    type: SourceType = SourceType.GITHUB
+    semver: typing.Optional[str] = None
+    version: typing.Optional[str] = None
 
 
 @dataclasses.dataclass

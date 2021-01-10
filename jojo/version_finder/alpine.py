@@ -9,7 +9,6 @@ import config
 import util
 
 ALPINE_OS = "alpine"
-DEFAULT_ARCH = "x86_64"
 DEFAULT_MIRROR = "http://dl-cdn.alpinelinux.org"
 APKINDEX_FILENAME = "APKINDEX.tar.gz"
 
@@ -26,9 +25,6 @@ class Alpine(version_finder.FindVersion):
 
         if not self.version_id.startswith("v"):
             self.version_id = "v" + self.version_id
-
-        if self.arch is None:
-            self.arch = DEFAULT_ARCH
 
         if self.mirror is None:
             self.mirror = DEFAULT_MIRROR

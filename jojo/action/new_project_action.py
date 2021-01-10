@@ -33,6 +33,8 @@ class NewProjectAction(action.JojoAction):
         dockerfile_rendered = tmpl.render(
             from_image_builder=namespace.from_image_builder,
             image_name=values,
+            github_owner=namespace.github_owner,
+            github_repo=namespace.github_repo,
         )
         LOGGER.debug('\n%s\n', dockerfile_rendered)
 
@@ -40,6 +42,24 @@ class NewProjectAction(action.JojoAction):
             LOGGER.info('creating build config')
             image = config.Image.from_str(
                     namespace.image)
+
+            version_from = None
+            version_from_ctor = getattr(
+                config,
+                'VersionFrom' + namespace.version_from.capitalize(),
+                None)
+
+            if version_from_ctor:
+                if namespace.version_from == config.SourceType.GITHUB.value:
+                    version_from = version_from_ctor(
+                            owner=namespace.github_owner,
+                            repository=namespace.github_repo)
+
+                if namespace.version_from == config.SourceType.ALPINE.value:
+                    version_from = version_from_ctor(
+                            package=namespace.alpine_package,
+                            repository=namespace.alpine_repo,
+                            version_id=namespace.alpine_version_id)
 
             build_config = config.ImageBuildConfig(
                 image=config.ImageTagFrom(
@@ -49,7 +69,7 @@ class NewProjectAction(action.JojoAction):
                     tag_build=config.TagBuild(
                         version=None,
                         type=config.SourceType.GITHUB,
-                        # TODO: add tag_build
+                        version_from=version_from,
                     ),
                 )
             )
@@ -66,8 +86,12 @@ class NewProjectAction(action.JojoAction):
 
         # TODO: sanitize image name
         image_dir = os.path.join(namespace.path, values)
-        buildfile_path = os.path.join(image_dir, config.Defaults.BUILDFILE_NAME.value)
-        dockerfile_path = os.path.join(image_dir, config.Defaults.DOCKERFILE_NAME.value)
+        buildfile_path = os.path.join(
+                image_dir,
+                config.Defaults.BUILDFILE_NAME.value)
+        dockerfile_path = os.path.join(
+                image_dir,
+                config.Defaults.DOCKERFILE_NAME.value)
 
         dry_run = namespace.dry_run
         try:
@@ -79,19 +103,20 @@ class NewProjectAction(action.JojoAction):
 
         LOGGER.info('writing build config')
         # if not os.path.isfile(buildfile_path) and not dry_run:
-        if True:
+        if not dry_run:
+            if os.path.isfile(buildfile_path):
+                LOGGER.info('the build config file already exists: %s',
+                            buildfile_path)
             with open(file=buildfile_path, mode='w') as buildfile:
                 build_config.to_fobj(fileobj=buildfile)
-        else:
-            LOGGER.info('the build config file already exists: %s', buildfile_path)
 
         LOGGER.info('writing dockerfile')
-        # if not os.path.isfile(dockerfile_path) and not dry_run:
-        if True:
+        if not dry_run:
+            if os.path.isfile(dockerfile_path):
+                LOGGER.info('the docker file already exists: %s',
+                            dockerfile_path)
             with open(file=dockerfile_path, mode='w') as dockerfile:
                 dockerfile.write(dockerfile_rendered)
-        else:
-            LOGGER.info('the docker file already exists: %s', dockerfile_path)
 
 
 dockerfile_j2 = '''
@@ -107,7 +132,7 @@ ARG VERSION
 
 RUN apk add --no-cache git make curl gcc libc-dev ncurses
 
-RUN curl -OL "https://github.com/REPLACE_OWNER/REPLACE_REPO/archive/v${VERSION}.tar.gz" && \\
+RUN curl -OL "https://github.com/{{ github_owner }}/{{ github_repo }}/archive/v${VERSION}.tar.gz" && \\
     tar zxf "v${VERSION}.tar.gz" && cd "{{ image_name }}-${VERSION}" && \\
     make && mv ./{{ image_name }} /go/bin/{{ image_name }}
 {% endif %}
