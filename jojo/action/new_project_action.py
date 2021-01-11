@@ -33,6 +33,7 @@ class NewProjectAction(action.JojoAction):
         dockerfile_rendered = tmpl.render(
             from_image_builder=namespace.from_image_builder,
             image_name=values,
+            alpine_package=namespace.alpine_package,
             github_owner=namespace.github_owner,
             github_repo=namespace.github_repo,
         )
@@ -139,13 +140,17 @@ RUN curl -OL "https://github.com/{{ github_owner }}/{{ github_repo }}/archive/v$
 
 FROM ${FROM_IMAGE}
 
+{% if not from_image_builder %}
+ARG VERSION
+{% endif %}
+
 LABEL maintainer="_me@spiarh.fr"
 
 {% if from_image_builder %}
 COPY --from=builder /go/bin/{{ image_name }} /usr/local/bin/{{ image_name }}
 {% endif %}
 
-RUN apk add --no-cache REPLACE_ME
+RUN apk add --no-cache "{{ alpine_package }}~=${VERSION}"
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
