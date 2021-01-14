@@ -42,7 +42,7 @@ class Buildah(builder.Builder):
         command.add_arg('.')
 
         LOGGER.info('Image name: %s', image)
-        LOGGER.debug('Command: "%s"', ' '.join(command))
+        LOGGER.info('Command: "%s"', ' '.join(command))
 
         if not namespace.dry_run:
             with util.pushd(image_dir):
