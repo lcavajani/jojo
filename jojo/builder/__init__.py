@@ -9,17 +9,6 @@ class Builder(abc.ABC):
     Base class for image management.
     """
 
-    def _normalize_filename(self, data):
-        """
-        Replaces problematic chars in filesnames.
-
-        :param data: The filename to normalize
-        :type data: str
-        :returns: A normalized filename
-        :rtype: str
-        """
-        return data.replace(':', '-').replace('/', '-')
-
     @abc.abstractmethod
     def build(
             self,
