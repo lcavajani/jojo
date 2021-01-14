@@ -11,20 +11,16 @@ LOGGER = logging.getLogger(__name__)
 
 class Command(list):
     def add_arg(self, name: str):
-        self.extend([name])
+        self.append(name)
 
-    def add_args(self, name: str, value: typing.Any):
+    def add_args(self, name: str, value: str):
         self.extend([name, value])
 
-    def add_flag(self, name: str, value: bool):
-        if value:
-            self.append(name)
+    def add_args_list(self, name: str, values: list):
+        for value in values:
+            self.extend([name, value])
 
-    def add_args_list(self, arg_name: str, list_values: list):
-        for value in list_values:
-            self.extend([arg_name, value])
-
-    def __add__(self, other) -> "Command":
+    def __add__(self, other) -> 'Command':
         return Command(super().__add__(other))
 
 
@@ -46,18 +42,18 @@ def image_full_name(
         registry: str,
         name: str,
         tag: str) -> str:
-    """
+    '''
     Build an image name.
-    """
+    '''
     return urljoin(registry, f'{name}:{tag}')
 
 
 def get_image_dir(path: str, image_name: str) -> str:
-    """
+    '''
     Returns the path of the image directory
     :param path: The path of the images directory.
     :param name: Name of the image, must exist as a directory.
-    """
+    '''
     image_dir = os.path.join(path, image_name)
 
     if not os.path.isdir(image_dir):
@@ -66,23 +62,32 @@ def get_image_dir(path: str, image_name: str) -> str:
     return image_dir
 
 
+def set_image_tag_latest(image: str) -> str:
+    '''
+    Set the image tag to latest.
+    :param image: Full name of the image.
+    '''
+    name, _ = image.rsplit(':', 1)
+    return ':'.join([name, 'latest'])
+
+
 def load_yaml(path: str) -> typing.Any:
-    """
+    '''
     Load file and read yaml.
     :param path: The path of the yaml file.
-    """
+    '''
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            content = yaml.safe_load(f)
-        return(content)
-    except IOError as e:
-        LOGGER.error("I/O error: {0}".format(e))
-    except yaml.YAMLError as ey:
-        LOGGER.error("Error in yaml file: {0}".format(ey))
+        with open(path, 'r', encoding='utf-8') as fobj:
+            content = yaml.safe_load(fobj)
+        return content
+    except IOError as io_err:
+        LOGGER.error('I/O error: %s', io_err)
+    except yaml.YAMLError as yaml_err:
+        LOGGER.error('Error in yaml file: %s', yaml_err)
 
 
 def get_class(package: str, module: str, name: str) -> typing.Any:
-    """
+    '''
     Returns a class.
     :param package: The name of the package.
     :param module: The name of the module.
@@ -91,9 +96,9 @@ def get_class(package: str, module: str, name: str) -> typing.Any:
     :rtype: class
     :raises: AttributeError
     :raises: ImportError
-    """
+    '''
     mod = '{}.{}'.format(package, module)
-    logging.debug('Importing "%s"', mod)
+    logging.debug('Importing %s', mod)
     cls = getattr(importlib.import_module(mod), name.capitalize())
     logging.debug('Class: %s', cls)
     return cls
@@ -101,32 +106,32 @@ def get_class(package: str, module: str, name: str) -> typing.Any:
 
 @contextmanager
 def pushd(path: str):
-    """
+    '''
     Changes to a path until end of context.
     :param path: A file system path.
-    """
+    '''
     original_cwd = os.getcwd()
-    logging.info('Original dir: "%s". Moving to "%s"', original_cwd, path)
+    logging.info('Original dir: %s, Moving to %s', original_cwd, path)
     os.chdir(path)
     yield
-    logging.info('Moving back to "%s" from "%s"', original_cwd, path)
+    logging.info('Moving back to %s, from %s', original_cwd, path)
     os.chdir(original_cwd)
 
 
-def get_first_key_dict(d: dict) -> typing.Any:
-    """
+def get_first_key_dict(dico: dict) -> typing.Any:
+    '''
     Returns the very first key from a dict.
-    :param d: The dict to iterate through.
-    """
-    for key in d:
+    :param dico: The dict to iterate through.
+    '''
+    for key in dico:
         return key
 
 
 def sanitize_version(version: str) -> str:
-    """
+    '''
     Sanitize the version.
     :param version: The version to sanitize.
-    """
+    '''
     if version.startswith('v'):
         version = version[1:]
     return version
