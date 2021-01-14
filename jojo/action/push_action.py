@@ -9,9 +9,9 @@ import util
 LOGGER = logging.getLogger(__name__)
 
 
-class BuildAction(action.JojoAction):
+class PushAction(action.JojoAction):
     '''
-    Build an image.
+    Push an image.
     '''
 
     def run(
@@ -30,6 +30,7 @@ class BuildAction(action.JojoAction):
         build_config = config.get_build_config(
                 path=namespace.path,
                 image_name=values)
+        image = build_config.image.full_name
 
         LOGGER.debug(build_config)
 
@@ -38,7 +39,6 @@ class BuildAction(action.JojoAction):
             module=namespace.builder,
             name=namespace.builder)()
 
-        builder.build(
+        builder.push(
             namespace=namespace,
-            image=values,
-            build_config=build_config)
+            image=image)

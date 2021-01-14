@@ -7,14 +7,15 @@ import jinja2
 
 import action
 import config
+import default
 
 LOGGER = logging.getLogger(__name__)
 
 
 class NewProjectAction(action.JojoAction):
-    """
+    '''
     Creates a new image project.
-    """
+    '''
 
     def run(
             self,
@@ -22,12 +23,12 @@ class NewProjectAction(action.JojoAction):
             namespace: argparse.Namespace,
             values: str,
             option_string: typing.Optional[str]):
-        """
+        '''
         :name parser: The argument parser in use.
         :name namespace: The namespace for parsed args.
         :name values: Values for the action.
         :name option_string: Option string.
-        """
+        '''
         LOGGER.info('templating Dockerfile')
         tmpl = jinja2.Template(dockerfile_j2)
         dockerfile_rendered = tmpl.render(
@@ -42,25 +43,27 @@ class NewProjectAction(action.JojoAction):
         try:
             LOGGER.info('creating build config')
             image = config.Image.from_str(
-                    namespace.image)
+                namespace.image)
 
             version_from = None
-            version_from_ctor = getattr(
-                config,
-                'VersionFrom' + namespace.version_from.capitalize(),
-                None)
+            version_from_ctor = None
+            if namespace.version_from:
+                version_from_ctor = getattr(
+                    config,
+                    'VersionFrom' + namespace.version_from.capitalize(),
+                    None)
 
             if version_from_ctor:
                 if namespace.version_from == config.SourceType.GITHUB.value:
                     version_from = version_from_ctor(
-                            owner=namespace.github_owner,
-                            repository=namespace.github_repo)
+                        owner=namespace.github_owner,
+                        repository=namespace.github_repo)
 
                 if namespace.version_from == config.SourceType.ALPINE.value:
                     version_from = version_from_ctor(
-                            package=namespace.alpine_package,
-                            repository=namespace.alpine_repo,
-                            version_id=namespace.alpine_version_id)
+                        package=namespace.alpine_package,
+                        repository=namespace.alpine_repo,
+                        version_id=namespace.alpine_version_id)
 
             build_config = config.ImageBuildConfig(
                 image=config.ImageTagFrom(
@@ -76,48 +79,46 @@ class NewProjectAction(action.JojoAction):
             )
             if namespace.from_image:
                 build_config.from_image = config.Image.from_str(
-                        namespace.from_image)
+                    namespace.from_image)
 
             if namespace.from_image_builder:
                 build_config.from_image_builder = config.Image.from_str(
-                        namespace.from_image_builder)
+                    namespace.from_image_builder)
             LOGGER.debug('\n%s', build_config.to_yaml())
         except TypeError:
             raise SystemError()
 
-        # TODO: sanitize image name
+        # TODO: validate image name
         image_dir = os.path.join(namespace.path, values)
         buildfile_path = os.path.join(
-                image_dir,
-                config.Defaults.BUILDFILE_NAME.value)
+            image_dir,
+            default.Config.BUILDFILE_NAME.value)
         dockerfile_path = os.path.join(
-                image_dir,
-                config.Defaults.DOCKERFILE_NAME.value)
+            image_dir,
+            default.Builder.DOCKERFILE_NAME.value)
 
-        dry_run = namespace.dry_run
+        if namespace.dry_run:
+            return
+
         try:
             LOGGER.info('creating image directory')
-            if not dry_run:
-                os.mkdir(image_dir)
+            os.mkdir(image_dir)
         except FileExistsError:
             LOGGER.info('the image directory already exists: %s', image_dir)
 
         LOGGER.info('writing build config')
-        # if not os.path.isfile(buildfile_path) and not dry_run:
-        if not dry_run:
-            if os.path.isfile(buildfile_path):
-                LOGGER.info('the build config file already exists: %s',
-                            buildfile_path)
-            with open(file=buildfile_path, mode='w') as buildfile:
-                build_config.to_fobj(fileobj=buildfile)
+        if os.path.isfile(buildfile_path):
+            LOGGER.info('the build config file already exists: %s',
+                        buildfile_path)
+        with open(file=buildfile_path, mode='w') as buildfile:
+            build_config.to_fobj(fileobj=buildfile)
 
         LOGGER.info('writing dockerfile')
-        if not dry_run:
-            if os.path.isfile(dockerfile_path):
-                LOGGER.info('the docker file already exists: %s',
-                            dockerfile_path)
-            with open(file=dockerfile_path, mode='w') as dockerfile:
-                dockerfile.write(dockerfile_rendered)
+        if os.path.isfile(dockerfile_path):
+            LOGGER.info('the docker file already exists: %s',
+                        dockerfile_path)
+        with open(file=dockerfile_path, mode='w') as dockerfile:
+            dockerfile.write(dockerfile_rendered)
 
 
 dockerfile_j2 = '''
@@ -155,4 +156,4 @@ RUN apk add --no-cache "{{ alpine_package }}~=${VERSION}"
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-'''
+'''  # noqa: E501

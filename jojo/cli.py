@@ -7,11 +7,12 @@ import os
 import platform
 import subprocess
 
-import config
+import default
 from action.new_project_action import NewProjectAction
 from action.find_version_action import FindVersionAction
 from action.list_version_action import ListVersionAction
 from action.build_action import BuildAction
+from action.push_action import PushAction
 
 
 def parse_args():
@@ -29,28 +30,28 @@ def parse_args():
     parent_parser.add_argument(
         '--log-level',
         default=os.environ.get(
-            config.EnvVar.LOG_LEVEL.value,
-            config.Defaults.LOG_LEVEL.value),
+            default.EnvVar.LOG_LEVEL.value,
+            default.Config.LOG_LEVEL.value),
         choices=('debug', 'info', 'warn', 'fatal'))
     parent_parser.add_argument(
         '-p', '--path',
         default=os.environ.get(
-            config.EnvVar.IMAGES_PATH.value,
+            default.EnvVar.IMAGES_PATH.value,
             None),
         help='Path to the container images directory')
     parent_parser.add_argument(
-        "--dry-run",
+        '--dry-run',
         default=bool(strtobool(os.environ.get(
-            config.EnvVar.DRY_RUN.value,
-            config.Defaults.DRY_RUN.value))),
-        action="store_true",
+            default.EnvVar.DRY_RUN.value,
+            default.Config.DRY_RUN.value))),
+        action='store_true',
         help='Do not write any files or execute commands')
     parent_parser.add_argument(
         '--builder',
         default=os.environ.get(
-            config.EnvVar.BUILDER.value,
-            config.Defaults.BUILDER.value),
-        choices=['buildkit', 'podman'])
+            default.EnvVar.BUILDER.value,
+            default.Builder.NAME.value),
+        choices=['buildah', 'buildkit', 'podman'])
 
     subparsers = parser.add_subparsers(
         title='commands', description='commands')
@@ -61,15 +62,15 @@ def parse_args():
         parents=[parent_parser])
     new_project.add_argument(
         '--alpine-package',
-        default=config.Defaults.ALPINE_PACKAGE.value,
+        default=default.Alpine.PACKAGE.value,
         help='Alpine package to use as version')
     new_project.add_argument(
         '--alpine-repo',
-        default=config.Defaults.ALPINE_REPO.value,
+        default=default.Alpine.REPO.value,
         help='Alpine repository to use for the package')
     new_project.add_argument(
         '--alpine-version-id',
-        default=config.Defaults.ALPINE_VERSION_ID.value,
+        default=default.Alpine.VERSION_ID.value,
         help='Alpine version id of the repository')
     new_project.add_argument(
         '--from-image-builder',
@@ -79,20 +80,20 @@ def parse_args():
         help='Image to use as the base image')
     new_project.add_argument(
         '--github-owner',
-        default=config.Defaults.GITHUB_OWNER.value,
+        default=default.Github.OWNER.value,
         help='GitHub owner of the repository')
     new_project.add_argument(
         '--github-repo',
-        default=config.Defaults.GITHUB_REPO.value,
+        default=default.Github.REPO.value,
         help='GitHub repository to use for the version')
     new_project.add_argument(
         '--image',
-        default=config.Defaults.IMAGE_DEFAULT.value,
+        default=default.Image.NAME.value,
         help='Image to build')
     new_project.add_argument(
         '--version-from',
         choices=['alpine', 'github'],
-        help='Source of the package version')
+        help='Select the source of the package')
     new_project.add_argument(
         'image', action=NewProjectAction)
 
@@ -102,7 +103,7 @@ def parse_args():
         parents=[parent_parser])
     list_version.add_argument(
         '--first-versions',
-        default=config.Defaults.FIRST_VERSIONS_LIST.value,
+        default=default.Config.FIRST_VERSIONS_LIST.value,
         help='Release versions to query, from new to old')
     list_version.add_argument(
         'image', action=ListVersionAction)
@@ -113,7 +114,7 @@ def parse_args():
         parents=[parent_parser])
     find_version.add_argument(
         '--first-versions',
-        default=config.Defaults.FIRST_VERSIONS_FIND.value,
+        default=default.Config.FIRST_VERSIONS_FIND.value,
         help='Release versions to query, from new to old')
     find_version.add_argument(
         'image', action=FindVersionAction)
@@ -123,12 +124,32 @@ def parse_args():
         'build', help='Build a container image',
         parents=[parent_parser])
     build.add_argument(
-        "--tag-latest",
-        default=config.Defaults.TAG_LATEST.value,
-        action="store_true",
+        '--addr',
+        help='Address to connect to')
+    build.add_argument(
+        '--push',
+        default=False,
+        action='store_true',
+        help='Push the image after the build')
+    build.add_argument(
+        '--tag-latest',
+        default=default.Config.TAG_LATEST.value,
+        action='store_true',
         help='Tag built image as latest')
     build.add_argument(
         'image', action=BuildAction)
+
+    # push command
+    push = subparsers.add_parser(
+        'push', help='Push a container image',
+        parents=[parent_parser])
+    push.add_argument(
+        '--tag-latest',
+        default=default.Config.TAG_LATEST.value,
+        action='store_true',
+        help='Tag image as latest before pushing')
+    push.add_argument(
+        'image', action=PushAction)
 
     parser.parse_args()
 
@@ -143,5 +164,5 @@ def main():
     raise SystemExit
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

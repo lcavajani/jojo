@@ -10,9 +10,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 class FindVersionAction(action.JojoAction):
-    """
+    '''
     Finds the version of a package from OS repo or GIT.
-    """
+    '''
 
     def run(
             self,
@@ -20,12 +20,12 @@ class FindVersionAction(action.JojoAction):
             namespace: argparse.Namespace,
             values: str,
             option_string: typing.Optional[str]):
-        """
+        '''
         :name parser: The argument parser in use.
         :name namespace: The namespace for parsed args.
         :name values: Values for the action.
         :name option_string: Option string.
-        """
+        '''
 
         buildfile_path = config.get_buildfile_path(
             path=namespace.path,
@@ -45,7 +45,7 @@ class FindVersionAction(action.JojoAction):
             print(version_from)
 
             repository = util.get_class(
-                package="version_finder",
+                package='version_finder',
                 module=version_from.type.value,
                 name=version_from.type.value)(version_from=version_from)
 

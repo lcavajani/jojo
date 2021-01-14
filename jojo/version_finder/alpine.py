@@ -2,15 +2,14 @@ import collections
 import dataclasses
 import urllib.request
 import tarfile
+import typing
 from io import BytesIO
 
 import version_finder
 import config
 import util
 
-ALPINE_OS = "alpine"
-DEFAULT_MIRROR = "http://dl-cdn.alpinelinux.org"
-APKINDEX_FILENAME = "APKINDEX.tar.gz"
+APKINDEX_FILENAME = 'APKINDEX.tar.gz'
 
 
 @dataclasses.dataclass
@@ -23,18 +22,15 @@ class Alpine(version_finder.FindVersion):
         self.arch = self.version_from.arch
         self.mirror = self.version_from.mirror
 
-        if not self.version_id.startswith("v"):
-            self.version_id = "v" + self.version_id
-
-        if self.mirror is None:
-            self.mirror = DEFAULT_MIRROR
+        if not self.version_id.startswith('v'):
+            self.version_id = 'v' + self.version_id
 
     @property
     def apkindex_url(self) -> str:
         # http://dl-cdn.alpinelinux.org/alpine/v3.12/main/x86_64/APKINDEX.tar.gz
         return util.urljoin(
             self.mirror,
-            ALPINE_OS,
+            self.version_from.type.value,
             self.version_id,
             self.repo,
             self.arch,
@@ -47,7 +43,6 @@ class Alpine(version_finder.FindVersion):
         return response.read()
 
     def _parse_apkindex(self, lines, start):
-        end_of_block_found = False
         pkg_ver = {}
         for i in range(start[0], len(lines)):
             # Check for empty line
@@ -55,26 +50,24 @@ class Alpine(version_finder.FindVersion):
             line = lines[i]
             if not isinstance(line, str):
                 line = line.decode()
-            if line == "\n":
-                end_of_block_found = True
+            if line == '\n':
                 break
 
-            if line.startswith("P:"):
-                package = line.split(':')[1].rstrip("\n")
-                pkg_ver["package"] = package
+            if line.startswith('P:'):
+                package = line.split(':')[1].rstrip('\n')
+                pkg_ver['package'] = package
 
-            if line.startswith("V:"):
-                version = line.split(':')[1].rstrip("\n")
-                pkg_ver["version"] = version
+            if line.startswith('V:'):
+                version = line.split(':')[1].rstrip('\n')
+                pkg_ver['version'] = version
 
-        if end_of_block_found:
-            return pkg_ver
+        return pkg_ver
 
     def _parse(self):
         apkindex = self._fetch_apkindex()
         fobj = BytesIO(apkindex)
-        with tarfile.open(fileobj=fobj, mode="r:gz") as tar:
-            with tar.extractfile(tar.getmember("APKINDEX")) as handle:
+        with tarfile.open(fileobj=fobj, mode='r:gz') as tar:
+            with tar.extractfile(tar.getmember('APKINDEX')) as handle:
                 lines = handle.readlines()
 
         packages = collections.OrderedDict()
@@ -83,7 +76,7 @@ class Alpine(version_finder.FindVersion):
             block = self._parse_apkindex(lines, start)
             if not block:
                 break
-            packages[block["package"]] = block["version"]
+            packages[block['package']] = block['version']
 
         return packages
 
@@ -100,8 +93,6 @@ class Alpine(version_finder.FindVersion):
             unstable=None,
             match=None)
 
-    def get_latest(self, first_versions: int) -> version_finder.Versions:
+    def get_latest(self, first_versions: int) -> typing.Any:
         versions = self.get_all(first_versions=first_versions)
-        version = versions.stable[0]
-        if version:
-            return version
+        return versions.stable[0]

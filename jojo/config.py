@@ -7,39 +7,8 @@ import dacite
 # import jsonschema
 import yaml
 
+import default
 import util
-
-
-class Defaults(enum.Enum):
-    """
-    Default configuration options.
-    """
-    ARCH = "x86_64"
-    ALPINE_PACKAGE = 'REPLACE_ALPINE_PACKAGE'
-    ALPINE_REPO = 'REPLACE_ALPINE_REPO'
-    ALPINE_VERSION_ID = 'REPLACE_ALPINE_VERSION_ID'
-    BUILDER = 'podman'
-    BUILDFILE_NAME = '.jojo.yaml'
-    DOCKERFILE_NAME = 'Dockerfile'
-    DRY_RUN = 'False'
-    IMAGE_DEFAULT = 'registry:443/image:tag'
-    GITHUB_OWNER = 'REPLACE_GITHUB_OWNER'
-    GITHUB_REPO = 'REPLACE_GITHUB_REPO'
-    FIRST_VERSIONS_LIST = 10
-    FIRST_VERSIONS_FIND = 100
-    LOG_LEVEL = 'info'
-    TAG_LATEST = True
-
-
-class EnvVar(enum.Enum):
-    """
-    Environment variables.
-    """
-    BUILDER = 'JOJO_BUILDER'
-    DRY_RUN = 'JOJO_DRY_RUN'
-    IMAGES_PATH = 'JOJO_IMAGES_PATH'
-    LOG_LEVEL = 'JOJO_LOG_LEVEL'
-    GITHUB_TOKEN = 'GITHUB_TOKEN'
 
 
 class SourceType(enum.Enum):
@@ -84,11 +53,10 @@ class VersionFromAlpine:
     package: str
     repository: str
     version_id: str
-    arch: typing.Optional[str] = Defaults.ARCH.value
-    mirror: typing.Optional[str] = None
+    arch: typing.Optional[str] = default.Image.ARCH.value
+    mirror: typing.Optional[str] = default.Alpine.MIRROR.value
     semver: typing.Optional[str] = None
     type: SourceType = SourceType.ALPINE
-    version: typing.Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -97,7 +65,6 @@ class VersionFromGithub:
     repository: str
     type: SourceType = SourceType.GITHUB
     semver: typing.Optional[str] = None
-    version: typing.Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -161,9 +128,9 @@ class ImageBuildConfig:
 
 
 class EnumValueYamlDumper(yaml.SafeDumper):
-    """
+    '''
     a yaml.SafeDumper that will dump enum objects using their values.
-    """
+    '''
     def represent_data(self, data):
         if isinstance(data, enum.Enum):
             return self.represent_data(data.value)
@@ -171,14 +138,14 @@ class EnumValueYamlDumper(yaml.SafeDumper):
 
 
 def get_buildfile_path(path: str, image_name: str) -> str:
-    """
+    '''
     Returns the path of the buildfile.
     :param path: The path of the image directory.
-    """
+    '''
     image_dir = util.get_image_dir(path, image_name)
     buildfile = os.path.join(
         image_dir,
-        Defaults.BUILDFILE_NAME.value)
+        default.Config.BUILDFILE_NAME.value)
 
     if not os.path.isfile(buildfile):
         raise ValueError(f'buildfile does not exist: {buildfile}')
@@ -189,12 +156,12 @@ def get_buildfile_path(path: str, image_name: str) -> str:
 def get_build_config(
         path: str,
         image_name: str) -> typing.Optional[ImageBuildConfig]:
-    """
+    '''
     Returns an ImageBuildConfig object from the default buildfile
     located in the image directory.
     :param path: The path of the images directory.
     :param name: Name of the image, must exist as a directory.
-    """
+    '''
     buildfile_path = get_buildfile_path(path, image_name)
     return ImageBuildConfig.from_dict(
         util.load_yaml(

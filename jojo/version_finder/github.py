@@ -7,6 +7,7 @@ import requests
 
 import util
 import config
+import default
 import version_finder
 
 GITHUB_GRAPHQL_API = 'https://api.github.com/graphql'
@@ -23,14 +24,14 @@ class Github(version_finder.FindVersion):
 
     @staticmethod
     def _define_headers():
-        token = os.environ.get(config.EnvVar.GITHUB_TOKEN.value, None)
+        token = os.environ.get(default.EnvVar.GITHUB_TOKEN.value, None)
         if token:
-            return {"Authorization": "Bearer {}".format(token)}
+            return {'Authorization': f'Bearer {token}'}
 
     def _query(self, query=None, variables=None):
-        """
+        '''
         Execute a GraphQL query.
-        """
+        '''
         try:
             request = self.http.post(
                 GITHUB_GRAPHQL_API,
@@ -53,7 +54,7 @@ class Github(version_finder.FindVersion):
             }
           }
         }
-        '''
+        '''  # noqa: E501
 
         variables = {
             'owner': self.version_from.owner,
@@ -79,12 +80,10 @@ class Github(version_finder.FindVersion):
             unstable = [r['tagName'] for r in releases if r['isPrerelease']]
 
         return version_finder.Versions(
-                stable=list(map(util.sanitize_version, stable or [])),
-                unstable=list(map(util.sanitize_version, unstable or [])),
-                match=None)
+            stable=list(map(util.sanitize_version, stable or [])),
+            unstable=list(map(util.sanitize_version, unstable or [])),
+            match=None)
 
-    def get_latest(self, first_versions: int) -> typing.Optional[str]:
+    def get_latest(self, first_versions: int) -> typing.Any:
         versions = self.get_all(first_versions=first_versions)
-        version = versions.stable[0]
-        if version:
-            return version
+        return versions.stable[0]
