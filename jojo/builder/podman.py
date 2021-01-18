@@ -56,9 +56,10 @@ class Podman(builder.Builder):
         if namespace.tag_latest:
             self.tag_latest(image)
 
-        self.push(
-                namespace=namespace,
-                image=image)
+        if namespace.push:
+            self.push(
+                    namespace=namespace,
+                    image=image)
 
     def push(self, namespace: argparse.Namespace, image: str):
         '''
