@@ -42,7 +42,6 @@ class FindVersionAction(action.JojoAction):
 
         if version_from:
             LOGGER.info('Using tag_build for %s', version_from.type.value)
-            print(version_from)
 
             repository = util.get_class(
                 package='version_finder',

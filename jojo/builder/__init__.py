@@ -27,14 +27,20 @@ class Builder(abc.ABC):
 
 def get_build_args(build_config: config.ImageBuildConfig):
     args = []
-    # if build_config.image:
-    #     args.append(f'IMAGE={build_config.image.full_name}')
+
+    if build_config.image.build_args:
+        b_args = build_config.image.build_args
+        args += [f'{k.upper()}={v}'
+                 for (k, v) in b_args.items() if isinstance(v, str)]
+
     if build_config.from_image:
         args.append(
             f'FROM_IMAGE={build_config.from_image.full_name}')
+
     if build_config.from_image_builder:
         args.append(
             f'FROM_IMAGE_BUILDER={build_config.from_image_builder.full_name}')
+
     return args
 
 

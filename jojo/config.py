@@ -82,6 +82,7 @@ class TagBuild:
 class ImageTagFrom(Image):
     tag: typing.Optional[str]
     tag_build: typing.Optional[TagBuild]
+    build_args: typing.Optional[dict] = None
 
 
 @dataclasses.dataclass

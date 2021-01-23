@@ -53,13 +53,14 @@ class Podman(builder.Builder):
         with util.pushd(image_dir):
             subprocess.check_call(command)
 
-        if namespace.tag_latest:
+        image_tag = build_config.image.tag
+        if namespace.tag_latest and image_tag != 'latest':
             self.tag_latest(image)
 
         if namespace.push:
             self.push(
-                    namespace=namespace,
-                    image=image)
+                namespace=namespace,
+                image=image)
 
     def push(self, namespace: argparse.Namespace, image: str):
         '''

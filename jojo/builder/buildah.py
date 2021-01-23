@@ -53,13 +53,14 @@ class Buildah(builder.Builder):
         with util.pushd(image_dir):
             subprocess.check_call(command)
 
-        if namespace.tag_latest:
+        image_tag = build_config.image.tag
+        if namespace.tag_latest and image_tag != 'latest':
             self.tag_latest(image)
 
         if namespace.push:
             self.push(
-                    namespace=namespace,
-                    image=image)
+                namespace=namespace,
+                image=image)
 
     def push(self, namespace: argparse.Namespace, image: str):
         '''
@@ -78,7 +79,8 @@ class Buildah(builder.Builder):
 
         subprocess.check_call(command)
 
-        if namespace.tag_latest:
+        _, image_tag = image.rsplit(':', 1)
+        if namespace.tag_latest and image_tag != 'latest':
             self.tag_latest(image)
             command[-1] = util.set_image_tag_latest(image=image)
             LOGGER.info('Command: %s', ' '.join(command))

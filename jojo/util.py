@@ -92,8 +92,6 @@ def get_class(package: str, module: str, name: str) -> typing.Any:
     :param package: The name of the package.
     :param module: The name of the module.
     :param name: The name of the class.
-    :returns: The class to use for image work
-    :rtype: class
     :raises: AttributeError
     :raises: ImportError
     '''
@@ -129,7 +127,7 @@ def get_first_key_dict(dico: dict) -> typing.Any:
 
 def sanitize_version(version: str) -> str:
     '''
-    Sanitize the version.
+    Sanitizes the version.
     :param version: The version to sanitize.
     '''
     if version.startswith('v'):

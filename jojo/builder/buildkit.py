@@ -48,7 +48,7 @@ class Buildkit(builder.Builder):
         :param build_config: the image build configuration.
         :raises: subprocess.CalledProcessError
         '''
-        LOGGER.info('Building image')
+        LOGGER.info('Build image')
 
         image_dir = util.get_image_dir(namespace.path, image)
         image = build_config.image.full_name
@@ -62,35 +62,25 @@ class Buildkit(builder.Builder):
             namespace=namespace,
             action='build',
             build_args=build_args)
+
+        image_names_output = [image]
+
+        image_tag = build_config.image.tag
+        if namespace.tag_latest and image_tag != 'latest':
+            image_latest = util.set_image_tag_latest(
+                image=image)
+            image_names_output.append(image_latest)
+
+        names_output = ','.join([f'name={i}' for i in image_names_output])
         command.add_args(
             name='--output',
-            value=f'type=image,name={image},push={namespace.push}')
+            value=f'type=image,{names_output},push={namespace.push}')
 
         LOGGER.info('Image name: %s', image)
         LOGGER.info('Command: %s', ' '.join(command))
-
-        # there is not tag command so just run the same command with latest tag
-        # and reuse the build cache.
-        if namespace.tag_latest:
-            command_latest = self._create_command(
-                namespace=namespace,
-                action='build',
-                build_args=build_args)
-            image_latest = util.set_image_tag_latest(
-                image=image)
-            command_latest.add_args(
-                name='--output',
-                value=f'type=image,name={image_latest},push={namespace.push}')
-
-            LOGGER.info('Image name: %s', image_latest)
-            LOGGER.info('Command: %s', ' '.join(command_latest))
 
         if namespace.dry_run:
             return
 
         with util.pushd(image_dir):
             subprocess.check_call(command)
-
-        if namespace.tag_latest:
-            with util.pushd(image_dir):
-                subprocess.check_call(command_latest)
