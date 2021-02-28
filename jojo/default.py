@@ -44,7 +44,7 @@ class Config(enum.Enum):
     FIRST_VERSIONS_LIST = 10
     FIRST_VERSIONS_FIND = 100
     LOG_LEVEL = 'info'
-    TAG_LATEST = True
+    TAG_LATEST = False
 
 
 class EnvVar(enum.Enum):
